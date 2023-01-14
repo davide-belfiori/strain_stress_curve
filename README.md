@@ -1,3 +1,3 @@
-# Project Name
+# Strain Stress Curve
 
-Project description.
+Strain-Stress curve correction with AI.
