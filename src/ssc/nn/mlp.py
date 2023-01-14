@@ -1,5 +1,5 @@
 import torch.nn as nn
-from activ import Activation
+from ssc.nn.activ import Activation
 
 def fill_list(l: list, target_length: int, default):
     if len(l) >= target_length:

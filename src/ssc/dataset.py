@@ -1,6 +1,6 @@
 import pandas as pd
 import glob
-from globals import *
+from ssc.globals import *
 import numpy as np
 
 class StrainStressDataset():

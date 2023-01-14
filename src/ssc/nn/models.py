@@ -1,6 +1,6 @@
 import torch
-from cnn import Conv2DResnet
-from activ import Activation
+from ssc.nn.cnn import Conv2DResnet
+from ssc.nn.activ import Activation
 
 class StrainStressNetwork(torch.nn.Module):
 

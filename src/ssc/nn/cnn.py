@@ -1,7 +1,7 @@
 import torch.nn as nn
 from torch import flatten
-from activ import Activation
-from mlp import MLP
+from ssc.nn.activ import Activation
+from ssc.nn.mlp import MLP
 
 # ---------------
 # --- MODULES ---
