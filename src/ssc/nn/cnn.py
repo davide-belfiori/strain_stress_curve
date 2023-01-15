@@ -13,14 +13,16 @@ class Conv2DBlock(nn.Module):
               in_channels: int, 
               out_channels: int, 
               kernel_size: 'int | tuple' = 3, 
-              activ_type: str = None):
+              activ_type: str = None,
+              padding_mode: str = "zeros"):
     super().__init__()
     self.in_channels = in_channels
     self.out_channels = out_channels
     self.kernel_size = kernel_size
     self.activ_type = activ_type
-    self.conv1 = nn.Conv2d(in_channels=self.in_channels, out_channels=self.out_channels, kernel_size=self.kernel_size, padding="same")
-    self.conv2 = nn.Conv2d(in_channels=self.out_channels, out_channels= self.out_channels, kernel_size=self.kernel_size, padding="same")
+    self.padding_mode = padding_mode
+    self.conv1 = nn.Conv2d(in_channels=self.in_channels, out_channels=self.out_channels, kernel_size=self.kernel_size, padding="same", padding_mode=self.padding_mode)
+    self.conv2 = nn.Conv2d(in_channels=self.out_channels, out_channels= self.out_channels, kernel_size=self.kernel_size, padding="same", padding_mode=self.padding_mode)
     self.activ = Activation(activ_type=self.activ_type)
 
   def forward(self, input):
@@ -35,12 +37,13 @@ class Conv2DResBlock(Conv2DBlock):
                out_channels: int, 
                kernel_size: 'int | tuple' = 3, 
                activ_type: str = None, 
-               drop_rate: float = 0.0):
-    super().__init__(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size, activ_type=activ_type)
+               drop_rate: float = 0.0,
+               padding_mode: str = "zeros"):
+    super().__init__(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size, activ_type=activ_type, padding_mode=padding_mode)
     self.drop_rate = drop_rate
     self.norm1 = nn.BatchNorm2d(num_features=self.out_channels)
     self.norm2 = nn.BatchNorm2d(num_features=self.out_channels)
-    self.res_conv = nn.Conv2d(in_channels=self.in_channels, out_channels=self.out_channels, kernel_size=self.kernel_size, padding="same")
+    self.res_conv = nn.Conv2d(in_channels=self.in_channels, out_channels=self.out_channels, kernel_size=self.kernel_size, padding="same", padding_mode=self.padding_mode)
     self.dropout = nn.Dropout2d(p=self.drop_rate)
 
   def forward(self, input):
@@ -66,6 +69,7 @@ class Conv2DResnet(nn.Module):
                kernel_size: 'int | tuple' = 3, 
                block_activ_type: str = "relu",
                block_drop_rate: float = 0.0,
+               padding_mode: str = "zeros",
                preprocessing = None,
                mlp: MLP = None) -> None:
     super().__init__()
@@ -74,6 +78,7 @@ class Conv2DResnet(nn.Module):
     self.kernel_size = kernel_size
     self.block_activ_type = block_activ_type
     self.block_drop_rate = block_drop_rate
+    self.padding_mode = padding_mode
     self.preprocessing = preprocessing
     self.mlp = mlp
     self.blocks = nn.ModuleList([])
@@ -88,7 +93,8 @@ class Conv2DResnet(nn.Module):
                                   out_channels = block_filters,
                                   kernel_size = self.kernel_size,
                                   activ_type = self.block_activ_type,
-                                  drop_rate = self.block_drop_rate)
+                                  drop_rate = self.block_drop_rate,
+                                  padding_mode = self.padding_mode)
       in_c = block_filters
       self.blocks.append(res_block)
 
