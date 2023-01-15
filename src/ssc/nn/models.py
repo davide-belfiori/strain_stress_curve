@@ -1,33 +1,30 @@
 import torch
 from ssc.nn.cnn import Conv2DResnet
 from ssc.nn.activ import Activation
+from ssc.nn.mlp import MLP
 
 class StrainStressNetwork(torch.nn.Module):
 
     def __init__(self,
+                 encoding: MLP,
                  resnet: Conv2DResnet,
-                 embed_dim: int = 2,
-                 out_activ: str = "relu") -> None:
+                 decoding: MLP) -> None:
         super().__init__()
-        self.embed_dim = embed_dim
+        self.encoding = encoding
         self.resnet = resnet
-        self.out_activ = out_activ
+        self.decoding = decoding
 
-        self.embed = torch.nn.Linear(in_features = 2, out_features = self.embed_dim)
-        self.decode = torch.nn.Linear(in_features = self.embed_dim, out_features = 1)
-        self.activ = Activation(self.out_activ)
+        self.layers = torch.nn.Sequential(
+            self.encoding,
+            self.resnet,
+            self.decoding
+        )
 
     def forward(self, input): # input_shape = (batch_size, seq_len, 2)
         # 1) Add channel dimension
         x = torch.unsqueeze(input, dim=1)
-        # 2) Coordinates Embedding
-        x = self.embed(x)
-        # 3) ResNet
-        x = self.resnet(x)
-        # 4) Decoding
-        x = self.decode(x)
-        # 5) Output Activation
-        x = self.activ(x)
+        # 2) Process input
+        x = self.layers(x)
         # 6) Squeeze All
         x = torch.squeeze(x)
 
