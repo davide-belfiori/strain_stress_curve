@@ -19,7 +19,7 @@ class StrainStressDataset():
             r : float
                 Real value used for apparent strain simulation.
 
-                If `r = None` a random value between 0 am 1 is used
+                If `r = None` a random value between 0 am 1 is used for each sample in the dataset.
             
             alpha : float
                 Real value used for apparent strain simulation.
@@ -30,8 +30,6 @@ class StrainStressDataset():
         self.filenames = glob.glob(self.root + "/*.csv")
         self.size = len(self.filenames)
         self.r = r
-        if self.r == None:
-            self.r = random.random()
         self.alpha = alpha
         if self.alpha <= 0:
             self.alpha = 1
@@ -48,8 +46,12 @@ class StrainStressDataset():
         for i, filename in enumerate(self.filenames):
             ssc = pd.read_csv(filename)
             ssc = ssc.where(ssc > 0).dropna(axis = 0)
-            ssc[STRAIN_A] = simulate_apparent_strain(ssc[STRAIN], self.r, self.alpha)
-            self.data.update({i: ssc})
+            if self.r == None:
+                r = random.random()
+            else:
+                r = self.r
+            ssc[STRAIN_A] = simulate_apparent_strain(ssc[STRAIN], r, self.alpha)
+            self.data.update({i: [ssc, r, self.alpha]})
 
     def to_numpy(self, min_max_norm: bool = False, standardize: bool = False, dtype = np.float32):
         """
@@ -61,7 +63,7 @@ class StrainStressDataset():
         """
         self.is_numpy = True
         for key in self.data:
-            ssc = self.data[key]
+            ssc = self.data[key][0]
             if min_max_norm:
                 ssc[STRAIN] = (ssc[STRAIN] - self.strain_min) / (self.strain_max - self.strain_min)
                 ssc[STRESS] = (ssc[STRESS] - self.stress_min) / (self.stress_max - self.stress_min)
@@ -71,7 +73,7 @@ class StrainStressDataset():
                 ssc[STRESS] = (ssc[STRESS] - self.stress_mean) / self.stress_std
                 ssc[STRAIN_A] = (ssc[STRAIN_A] - self.strain_mean) / self.strain_std
 
-            self.data[key] = ssc.to_numpy(dtype = dtype)
+            self.data[key][0] = ssc.to_numpy(dtype = dtype)
 
     def calc_stat(self):
         """
@@ -92,7 +94,7 @@ class StrainStressDataset():
         self.strain_a_max = None
 
         for i in range(self.size):
-            ssc = self.data[i]
+            ssc = self.data[i][0]
             strain_series = pd.concat([strain_series, ssc[STRAIN]])
             stress_series = pd.concat([stress_series, ssc[STRESS]])
             strain_a_series = pd.concat([strain_a_series, ssc[STRAIN_A]])
@@ -124,7 +126,7 @@ class StrainStressDataset():
         return self.size
 
     def __getitem__(self, idx):
-        strain_stress = self.data[idx]
+        strain_stress, r, alpha = self.data[idx]
         if self.is_numpy:
-            return strain_stress[:, [2, 1]], strain_stress[:,0]
-        return strain_stress.drop(STRAIN, axis = 1), strain_stress[STRAIN]
+            return strain_stress[:, [2, 1]], strain_stress[:,0], r, alpha
+        return strain_stress.drop(STRAIN, axis = 1), strain_stress[STRAIN], r, alpha
