@@ -80,7 +80,7 @@ class CutNegativeStrain(BaseProcessor):
             cut = object.curve.iloc[cut_idx + 1:]
             cut.reset_index(drop=True, inplace=True)
             if isinstance(object, RealApparentSSC):
-                return RealApparentSSC(data = cut, like=object, id=object.id)
+                return RealApparentSSC(curve = cut, like=object, id=object.id)
             return StrainStressCurve(curve = cut, like=object, id=object.id)
         return object
 
@@ -99,7 +99,7 @@ class CutFirstN(BaseProcessor):
         cut = object.curve.iloc[self.n:]
         cut.reset_index(drop=True, inplace=True)
         if isinstance(object, RealApparentSSC):
-            return RealApparentSSC(data=cut, like=object, id=object.id)
+            return RealApparentSSC(curve=cut, like=object, id=object.id)
         return StrainStressCurve(curve=cut, like=object, id=object.id)
 
 class CutLastN(BaseProcessor):
@@ -117,7 +117,7 @@ class CutLastN(BaseProcessor):
         cut = object.curve.iloc[:-self.n]
         cut.reset_index(drop=True, inplace=True)
         if isinstance(object, RealApparentSSC):
-            return RealApparentSSC(data=cut, like=object, id=object.id)
+            return RealApparentSSC(curve=cut, like=object, id=object.id)
         return StrainStressCurve(curve=cut, like=object, id=object.id)
 
 class RandomCut(BaseProcessor):

@@ -569,7 +569,7 @@ class SSCDataLoader():
         batch_end = (self.current_batch_idx + 1) * self.batch_size
         indices = self.indices[batch_start : batch_end]
         self.current_batch_idx += 1
-        return self.data.__getitem__(indices)
+        return self.__getitem__(indices)
 
     def reset(self):
         """
