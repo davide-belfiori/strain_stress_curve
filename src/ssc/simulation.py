@@ -128,6 +128,48 @@ class SimulateApparent(BaseProcessor):
                                      alpha = self.alpha,
                                      id = object.id if self.copy_id else None)
 
+class CutSimulation(BaseProcessor):
+    """
+        Cut n points of a Real-Apparent simulation.
+    """
+    def __init__(self, n: int, from_end: bool = False) -> None:
+        """
+            Arguments:
+            ----------
+
+            n : int
+                Number of points to cut.
+
+            from_end : bool
+                Cut last n points. (Default = False)
+        """
+        assert n > 0
+        self.n = n
+        self.from_end = from_end
+
+        if self.from_end:
+            self.ssc_cut = CutLastN(self.n)
+        else:
+            self.ssc_cut = CutFirstN(self.n)
+
+    def process(self, object, index: int = None, batch_size : int = None):
+        if not isinstance(object, ApparentSSCSimulation):
+            raise TypeError("Invalid type: input must be a ApparentSSCSimulation object.")
+        
+        real_cut = self.ssc_cut(object.real_ssc())
+        if self.from_end:
+            apparent_cut = object.apparent_strain().iloc[:-self.n]
+        else:
+            apparent_cut = object.apparent_strain().iloc[self.n:]
+        apparent_cut.reset_index(drop=True, inplace=True)
+
+        return ApparentSSCSimulation(real = real_cut, 
+                                     apparent_strain = apparent_cut,
+                                     r = object.r,
+                                     alpha = object.alpha,
+                                     apparent_label = object.apparent_strain_label,
+                                     id = object.id)
+
 class NormalizeSimulation(NormalizeSSC):
     """
         Compute the Min-Max Normalization of a Real-Apparent Simulation.
