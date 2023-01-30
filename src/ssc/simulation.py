@@ -128,6 +128,32 @@ class SimulateApparent(BaseProcessor):
                                      alpha = self.alpha,
                                      id = object.id if self.copy_id else None)
 
+class NormalizeSimulation(NormalizeSSC):
+    """
+        Compute the Min-Max Normalization of a Real-Apparent Simulation.
+    """
+    def __init__(self, 
+                 min_strain: float, 
+                 max_strain: float, 
+                 min_stress: float, 
+                 max_stress: float, 
+                 min_app_strain: float = None, 
+                 max_app_strain: float = None) -> None:
+        super().__init__(min_strain, max_strain, min_stress, max_stress, min_app_strain, max_app_strain)
+
+    def process(self, object, index: int = None, batch_size : int = None):
+        if not isinstance(object, ApparentSSCSimulation):
+            raise TypeError("Invalid type: input must be a ApparentSSCSimulation object.")
+        norm_real = super().process(object=object.real_ssc(), index=index, batch_size=batch_size)
+        norm_apparent_strain = (object.apparent_strain() - self.min_app_strain) / (self.max_app_strain - self.min_app_strain)
+            
+        return ApparentSSCSimulation(real = norm_real, 
+                                     apparent_strain = norm_apparent_strain, 
+                                     r = object.r,
+                                     alpha = object.alpha,
+                                     apparent_label = object.apparent_strain_label,
+                                     id = object.id)
+
 class XYSimSplit(XYRealApparentSplit):
     """
         Given an `ApparentSSCSimulation` return a tuple `(X, Y, r, alpha)`,
@@ -171,7 +197,7 @@ def simulate_real_apparent_dataset(dataset: StrainStressDataset,
     """
     pipeline = ProcessingPipeline([
         CutNegativeStrain(),
-        SimulateApparent(r = r, alpha = alpha, r_policy = r_policy)
+        SimulateApparent(r = r, alpha = alpha, r_policy = r_policy) # TODO: aggiungere possibilità di modificare la "apparent_strain_label"
     ])
     sim_data = pipeline(dataset.data)
     sim_data = Series(data = sim_data, index = dataset.data.index)
