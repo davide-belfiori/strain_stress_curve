@@ -218,13 +218,14 @@ class SSC2Tensor(BaseProcessor):
     """
         Convert a Strain-Stress curve into Pytorch Tensors.
     """
-    def __init__(self, device: str = "cpu") -> None:
+    def __init__(self, device: str = "cpu", dtype = None) -> None:
         self.device = device
+        self.dtype = dtype
 
     def process(self, object, index: int = None, batch_size : int = None):
         if not isinstance(object, StrainStressCurve):
             raise TypeError("Invalid type: input must be a StrainStressCurve object.")
-        return tensor(data=object.curve.values, device=self.device)
+        return tensor(data=object.curve.values, device=self.device, dtype=self.dtype)
 
 class XYRealApparentSplit(BaseProcessor):
     """
@@ -232,16 +233,17 @@ class XYRealApparentSplit(BaseProcessor):
         where `X` is the Apparent curve and `Y` is the real Strain values.
         Both `X` and `Y` are tensor.
     """
-    def __init__(self, device: str = "cpu") -> None:
+    def __init__(self, device: str = "cpu", dtype = None) -> None:
         super().__init__()
         self.device = device
-        self.ssc2tensor = SSC2Tensor(device = self.device)
+        self.dtype = dtype
+        self.ssc2tensor = SSC2Tensor(device = self.device, dtype = self.dtype)
 
     def process(self, object, index: int = None, batch_size: int = None):
         if not isinstance(object, RealApparentSSC):
             raise TypeError("Invalid type: input must be a RealApparentSSC object.")
         X = self.ssc2tensor(object.apparent_ssc())
-        Y = tensor(data=object.strain().values, device=self.device)
+        Y = tensor(data=object.strain().values, device=self.device, dtype=self.dtype)
         return X, Y
 
 class ProcessingPipeline():

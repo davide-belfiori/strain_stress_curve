@@ -160,10 +160,8 @@ class XYSimSplit(XYRealApparentSplit):
         where `X` is the Apparent curve and `Y` is the real Strain values.
         Both `X` and `Y` are tensor.
     """
-    def __init__(self, device: str = "cpu") -> None:
-        super().__init__()
-        self.device = device
-        self.ssc2tensor = SSC2Tensor(device = self.device)
+    def __init__(self, device: str = "cpu", dtype = None) -> None:
+        super().__init__(device=device, dtype=dtype)
 
     def process(self, object, index: int = None, batch_size: int = None):
         X, Y = super().process(object=object, index=index, batch_size=batch_size)
