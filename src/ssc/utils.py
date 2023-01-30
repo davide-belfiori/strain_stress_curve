@@ -16,26 +16,26 @@ import matplotlib.pyplot as plt
 
 # >>> Plot functions
 
-def plot_ssc(ssc: StrainStressCurve) -> None:
+def plot_ssc(ssc: StrainStressCurve, print_id: bool = True) -> None:
     """
         Plot a Strain-Stress curve.
     """
     title = "Strain-Stress Curve"
-    if ssc.id != None:
-        title = title + "(id = {})".format(ssc.id)
+    if ssc.id != None and print_id:
+        title = title + " (id = {})".format(ssc.id)
     plt.plot(ssc.strain(), ssc.stress())
     plt.title(label=title)
     plt.xlabel(xlabel="Strain")
     plt.ylabel(ylabel="Stress")
     plt.show()
 
-def plot_ra_ssc(ra_ssc: RealApparentSSC, plot_epsilon: bool = True) -> None:
+def plot_ra_ssc(ra_ssc: RealApparentSSC, plot_epsilon: bool = True, print_id: bool = True) -> None:
     """
         Plot a Real-Aparent Strain-Stress curve.
     """
     title = "Real-Apparent Strain-Stress Curve"
-    if ra_ssc.id != None:
-        title = title + "(id = {})".format(ra_ssc.id)
+    if ra_ssc.id != None and print_id:
+        title = title + " (id = {})".format(ra_ssc.id)
     if plot_epsilon:
         plt.subplot(1, 2, 1, title=title, xlabel="Strain", ylabel="Stress")
         plt.plot(ra_ssc.strain(), ra_ssc.stress(), label="real")
@@ -52,13 +52,13 @@ def plot_ra_ssc(ra_ssc: RealApparentSSC, plot_epsilon: bool = True) -> None:
         plt.ylabel(ylabel="Stress")
     plt.show()
     
-def plot_simulation(sim: ApparentSSCSimulation, plot_epsilon: bool = True) -> None:
+def plot_simulation(sim: ApparentSSCSimulation, plot_epsilon: bool = True, print_id: bool = True) -> None:
     """
         Plot a Real-Aparent Strain-Stress curve simulation.
     """
     title = "Real-Apparent Simulation"
-    if sim.id != None:
-        title = title + "(id = {})".format(sim.id)
+    if sim.id != None and print_id:
+        title = title + " (id = {})".format(sim.id)
     if plot_epsilon:
         plt.subplot(1, 2, 1, title=title, xlabel="Strain", ylabel="Stress")
         plt.plot(sim.strain(), sim.stress(), label="real")
