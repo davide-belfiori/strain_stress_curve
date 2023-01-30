@@ -347,7 +347,7 @@ class BaseDataset():
         idx = random.choice(self.data.index)
         return self.data[idx]
 
-    def train_test_split(self, test_ratio: float = 0.1):
+    def train_test_split(self, test_ratio: float = 0.1, shuffle: bool = True):
         """
             Split the dataset into train and test subsets.
 
@@ -356,12 +356,21 @@ class BaseDataset():
 
             test_ratio : float
                 Size of test dataset. Must be in [0, 1], default = 0.1
+
+            shuffle : bool
+                Shuffle dataset before splitting.
         """
         assert test_ratio <= 1, test_ratio >= 0.
         test_size = int(self.size * test_ratio)
         train_size = self.size - test_size
 
-        return BaseDataset(self.data[:train_size]), BaseDataset(self.data[train_size:])
+        indices = self.data.index.to_list()
+        if shuffle:
+            random.shuffle(indices)
+        train_indices = indices[:train_size]
+        test_indices = indices[train_size:]
+
+        return BaseDataset(self.data[train_indices]), BaseDataset(self.data[test_indices])
 
     def __iter__(self):
         return self.data.__iter__()
