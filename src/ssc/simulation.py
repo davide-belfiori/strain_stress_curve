@@ -6,7 +6,7 @@
 # --- IMPORT ---
 # --------------
 
-from ssc.data import RealApparentSSC, StrainStressDataset, BaseDataset
+from ssc.data import RealApparentSSC, StrainStressDataset, RealApparentSSCDataset
 from ssc.processing import *
 import random
 import numpy as np
@@ -128,7 +128,6 @@ class SimulateApparent(BaseProcessor):
                                      alpha = self.alpha,
                                      id = object.id if self.copy_id else None)
 
-# TODO: implementare una versione di XYSimSplit per RealApparentSSC
 class XYSimSplit(XYRealApparentSplit):
     """
         Given an `ApparentSSCSimulation` return a tuple `(X, Y, r, alpha)`,
@@ -144,7 +143,7 @@ class XYSimSplit(XYRealApparentSplit):
         X, Y = super().process(object=object, index=index, batch_size=batch_size)
         return X, Y, object.r, object.alpha
 
-class RealApparentSimulationDataset(BaseDataset):
+class RealApparentSimulationDataset(RealApparentSSCDataset):
     """
         Collection of `ApparentSSCSimulation` objects.
     """
