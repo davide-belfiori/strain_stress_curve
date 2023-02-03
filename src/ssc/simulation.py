@@ -75,6 +75,12 @@ class ApparentSSCSimulation(RealApparentSSC):
                                      alpha = self.alpha,
                                      apparent_label = self.apparent_strain_label)
 
+    def info(self):
+        i = super().info()
+        i.update({"r": self.r,
+                  "alpha": self.alpha})
+        return i
+
 class SimulateApparent(BaseProcessor):
     """
         Simulate an apparent Strain-Stress curve given the real one using the formula:
@@ -196,19 +202,6 @@ class NormalizeSimulation(NormalizeSSC):
                                      apparent_label = object.apparent_strain_label,
                                      id = object.id)
 
-class XYSimSplit(XYRealApparentSplit):
-    """
-        Given an `ApparentSSCSimulation` return a tuple `(X, Y, r, alpha)`,
-        where `X` is the Apparent curve and `Y` is the real Strain values.
-        Both `X` and `Y` are tensor.
-    """
-    def __init__(self, device: str = "cpu", dtype = None) -> None:
-        super().__init__(device=device, dtype=dtype)
-
-    def process(self, object, index: int = None, batch_size: int = None):
-        X, Y = super().process(object=object, index=index, batch_size=batch_size)
-        return X, Y, object.r, object.alpha
-
 class RealApparentSimulationDataset(RealApparentSSCDataset):
     """
         Collection of `ApparentSSCSimulation` objects.
@@ -222,6 +215,9 @@ class RealApparentSimulationDataset(RealApparentSSCDataset):
                 Series of `ApparentSSCSimulation` objects
         """
         super(RealApparentSimulationDataset, self).__init__(data=data)
+
+    def __getitem__(self, idx) -> ApparentSSCSimulation:
+        return super().__getitem__(idx)
 
 # -----------------
 # --- FUNCTIONS ---

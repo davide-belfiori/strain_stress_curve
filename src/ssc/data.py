@@ -70,6 +70,19 @@ class StrainStressCurve():
                                  strain_label=self.strain_label,
                                  stress_label=self.strain_label)
 
+    def info(self):
+        """
+            Return curve info.
+        """
+        return {"id": self.id,
+                "min_strain": self.min_strain(),
+                "max_strain": self.max_strain(),
+                "min_stress": self.min_stress(),
+                "strain_mean": self.strain_mean(),
+                "stress_mean": self.stress_mean(),
+                "strain_std": self.strain_std(),
+                "stress_std": self.stress_std()}
+
     def strain(self):
         """
             Return the Strain values of the curve.
@@ -160,7 +173,7 @@ class StrainStressCurve():
         """
         return self.curve[self.strain_label].std()
 
-    def strain_std(self):
+    def stress_std(self):
         """
             Return the Stress standard deviation.
         """
@@ -180,6 +193,8 @@ class StrainStressCurve():
 
     def __len__(self):
         return self.length()
+
+    # TODO: implement __getitem__ method for indexing handling
 
 class RealApparentSSC(StrainStressCurve):
     """
@@ -260,6 +275,20 @@ class RealApparentSSC(StrainStressCurve):
                                       columns=[self.strain_label, self.stress_label, self.apparent_strain_label])
         self.id = id
 
+    def copy(self):
+        return RealApparentSSC(data = self.curve.copy(),
+                                strain_label = self.strain_label,
+                                stress_label = self.stress_label,
+                                apparent_strain_label = self.apparent_strain_label)
+
+    def info(self):
+        i = super().info()
+        i.update({"min_apparent_strain": self.max_apparent_strain(),
+                  "max_apparent_strain": self.max_apparent_strain(),
+                  "apparent_strain_mean": self.apparent_strain_mean(),
+                  "apparent_strain_std": self.apparent_strain_std()})
+        return i
+
     def real_ssc(self) -> StrainStressCurve:
         """
             Return the real Strain-Stress curve.
@@ -275,12 +304,6 @@ class RealApparentSSC(StrainStressCurve):
         return StrainStressCurve(curve = self.curve.drop(self.strain_label, axis = 1),
                                  strain_label = self.apparent_strain_label,
                                  stress_label = self.stress_label)
-
-    def copy(self):
-        return RealApparentSSC(data = self.curve.copy(),
-                                strain_label = self.strain_label,
-                                stress_label = self.stress_label,
-                                apparent_strain_label = self.apparent_strain_label)
 
     def apparent_strain(self):
         """
@@ -395,6 +418,9 @@ class StrainStressDataset(BaseDataset):
         """
         super(StrainStressDataset, self).__init__(data)
 
+    def __getitem__(self, idx) -> StrainStressCurve:
+        return super().__getitem__(idx)
+
 class RealApparentSSCDataset(BaseDataset):
     """
         Collection of `RealApparentSSC` objects.
@@ -408,6 +434,9 @@ class RealApparentSSCDataset(BaseDataset):
                 Series of `RealApparentSSC` objects
         """
         super(RealApparentSSCDataset, self).__init__(data)
+    
+    def __getitem__(self, idx) -> RealApparentSSC:
+        return super().__getitem__(idx)
 
 # >>> Statistics
 

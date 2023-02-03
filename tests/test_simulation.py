@@ -22,16 +22,3 @@ def test_r_policy() -> None:
     assert real_apparent_dataset.data[0].r == 1
     assert real_apparent_dataset.data[1].r == 0.5
     assert real_apparent_dataset.data[2].r == 1
-
-def test_XYSimSplit() -> None:
-    real_dataset = load_dataset("test_data/test_dataset")
-    real_apparent_dataset = simulate_real_apparent_dataset(real_dataset)
-    xy_split = XYSimSplit()
-    transformed = xy_split(real_apparent_dataset.data)
-    for i, item in enumerate(transformed):
-        X, Y, r, alpha = item
-
-        assert X.shape == (real_apparent_dataset.data[i].length(), 2)
-        assert Y.shape == (real_apparent_dataset.data[i].length(), )
-        assert r == real_apparent_dataset.data[i].r
-        assert alpha == real_apparent_dataset.data[i].alpha

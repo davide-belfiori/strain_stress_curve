@@ -229,8 +229,10 @@ class SSC2Tensor(BaseProcessor):
 
 class XYRealApparentSplit(BaseProcessor):
     """
-        Given a `RealApparentSSC` return a tuple `(X, Y)`,
-        where `X` is the Apparent curve and `Y` is the real Strain values.
+        Given a `RealApparentSSC` return a tuple `(X, Y, info)`,
+        where `X` is the Apparent curve, `Y` is the real Strain values 
+        and `info` is a dictionary with additional curve info.
+        
         Both `X` and `Y` are tensor.
     """
     def __init__(self, device: str = "cpu", dtype = None) -> None:
@@ -244,7 +246,7 @@ class XYRealApparentSplit(BaseProcessor):
             raise TypeError("Invalid type: input must be a RealApparentSSC object.")
         X = self.ssc2tensor(object.apparent_ssc())
         Y = tensor(data=object.strain().values, device=self.device, dtype=self.dtype)
-        return X, Y
+        return X, Y, object.info()
 
 class ProcessingPipeline():
     """

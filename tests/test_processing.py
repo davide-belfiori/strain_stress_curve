@@ -41,7 +41,7 @@ def test_XYRealApparentSplit() -> None:
     xy_split = XYRealApparentSplit()
     transformed = xy_split(real_apparent_dataset.data)
     for i, item in enumerate(transformed):
-        X, Y = item
+        X, Y, info = item
 
         assert X.shape == (real_apparent_dataset.data[i].length(), 2)
         assert Y.shape == (real_apparent_dataset.data[i].length(), )
