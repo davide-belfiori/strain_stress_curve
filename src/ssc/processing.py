@@ -10,10 +10,13 @@ import random
 from pandas import DataFrame, Series
 from ssc.data import StrainStressCurve, RealApparentSSC
 from torch import tensor
+import numpy as np
 
 # ---------------
 # --- CLASSES ---
 # ---------------
+
+# TODO: check which processors return an object copy and which modify the object inplace. 
 
 class BaseProcessor():
     """
@@ -158,6 +161,44 @@ class RandomCut(BaseProcessor):
         if random.random() < self.p_start:
             return CutFirstN(cut_size).process(object, index, batch_size)
         return CutLastN(cut_size).process(object, index, batch_size)
+
+class AddApparentNoise(BaseProcessor):
+    """
+    Add random noise to Apparent Strain values.
+
+    Noise is sampled from a Normal Distribution.
+    """
+    def __init__(self,
+                 noise_mean: float = 0.0,
+                 noise_std: float = 0.01,
+                 inplace: bool = True) -> None:
+        """
+        Arguments:
+        ----------
+            noise_mean : float
+                Mean of additive noise.
+            
+            noise_std : float
+                Standard deviation of additive noise.
+
+            inplace : bool
+                Whether to modify the original object or to return a copy.
+        """
+        super().__init__()
+        self.noise_mean = noise_mean
+        self.noise_std = noise_std
+        self.inplace = inplace
+
+    def process(self, object, index: int = None, batch_size: int = None):
+        if not isinstance(object, RealApparentSSC):
+            raise TypeError("Invalid type: input must be a ApparentSSCSimulation object.")
+        if not self.inplace:
+            object = object.copy()
+        curve_len = object.length()
+        noise = np.random.normal(loc=self.noise_mean, scale=self.noise_std, size=(curve_len,))
+        object.curve[object.apparent_strain_label] += noise
+
+        return object
 
 class NormalizeSSC(BaseProcessor):
     """
