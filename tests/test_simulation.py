@@ -22,3 +22,12 @@ def test_r_policy() -> None:
     assert real_apparent_dataset.data[0].r == 1
     assert real_apparent_dataset.data[1].r == 0.5
     assert real_apparent_dataset.data[2].r == 1
+
+def test_alpha_policy() -> None:
+    real_dataset = load_dataset("test_data/test_dataset")
+    alpha_policy = lambda ssc, index, batch_size: 1 if index % 2 == 0 else 2
+    real_apparent_dataset = simulate_real_apparent_dataset(real_dataset, alpha_policy = alpha_policy)
+
+    assert real_apparent_dataset.data[0].alpha == 1
+    assert real_apparent_dataset.data[1].alpha == 2
+    assert real_apparent_dataset.data[2].alpha == 1
