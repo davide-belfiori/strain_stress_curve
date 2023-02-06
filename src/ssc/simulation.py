@@ -89,8 +89,9 @@ class SimulateApparent(BaseProcessor):
     """
     def __init__(self, 
                  r: float = None,
-                 alpha: float = 2.0, 
+                 alpha: float = None, 
                  r_policy: 'Callable[[StrainStressCurve, int, int], float]' = None,
+                 alpha_policy: 'Callable[[StrainStressCurve, int, int], float]' = None,
                  copy_id: bool = True) -> None:
         """
         Arguments:
@@ -103,12 +104,18 @@ class SimulateApparent(BaseProcessor):
             If `r` and `r_policy` are `None`, a random value between 0 and 1 is used.
 
         alhpa : float
-            Default = 2.0
+            If `alpha` and `alpha_policy` are `None`, 
+            a random value is sampled from a normal distribution 
+            with mean = 2and standard deviation = 0.1.
 
         r_policy : Callable[[StrainStressCurve, int, int], float]
             Function returning `r` value given a StrainStressCurve, 
             its position in the batch and the batch size.
         
+        alpha_policy : Callable[[StrainStressCurve, int, int], float]
+            Function returning `alpha` value given a StrainStressCurve, 
+            its position in the batch and the batch size.
+
         copy_id : bool
             If `True`, simulation id is taken from the real `StrainStressCurve`
         """
@@ -116,6 +123,7 @@ class SimulateApparent(BaseProcessor):
         self.r = r
         self.alpha = alpha
         self.r_policy = r_policy
+        self.alpha_policy = alpha_policy
         self.copy_id = copy_id
 
     def process(self, object: StrainStressCurve, index: int = None, batch_size: int = None) -> ApparentSSCSimulation:
@@ -127,11 +135,18 @@ class SimulateApparent(BaseProcessor):
                 r = self.r
         else:
             r = self.r_policy(object, index, batch_size)
-        apparent_strain = np.sqrt(strain_real * (1 + r)) / self.alpha
+        if self.alpha_policy == None:
+            if self.alpha == None:
+                alpha = random.normalvariate(mu=2, sigma=0.1)
+            else:
+                alpha = self.alpha
+        else:
+            alpha = self.alpha_policy(object, index, batch_size)
+        apparent_strain = np.sqrt(strain_real * (1 + r)) / alpha
         return ApparentSSCSimulation(real = object,
                                      apparent_strain = apparent_strain,
                                      r = r,
-                                     alpha = self.alpha,
+                                     alpha = alpha,
                                      id = object.id if self.copy_id else None)
 
 class CutSimulation(BaseProcessor):
@@ -227,13 +242,17 @@ class RealApparentSimulationDataset(RealApparentSSCDataset):
 def simulate_real_apparent_dataset(dataset: StrainStressDataset, 
                                    r: float = 0.5, 
                                    alpha: float = 2.0, 
-                                   r_policy: 'Callable[[StrainStressCurve, int, int], float]' = None):
+                                   r_policy: 'Callable[[StrainStressCurve, int, int], float]' = None,
+                                   alpha_policy: 'Callable[[StrainStressCurve, int, int], float]' = None):
     """
         Simulate a Real-Apparent Dataset from a `StrainStressDataset`.
     """
     pipeline = ProcessingPipeline([
         CutNegativeStrain(),
-        SimulateApparent(r = r, alpha = alpha, r_policy = r_policy) # TODO: aggiungere possibilità di modificare la "apparent_strain_label"
+        SimulateApparent(r = r, 
+                         alpha = alpha, 
+                         r_policy = r_policy, 
+                         alpha_policy = alpha_policy) # TODO: aggiungere possibilità di modificare la "apparent_strain_label"
     ])
     sim_data = pipeline(dataset.data)
     sim_data = Series(data = sim_data, index = dataset.data.index)
