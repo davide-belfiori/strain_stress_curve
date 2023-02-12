@@ -8,7 +8,7 @@
 
 import random
 from pandas import DataFrame, Series
-from ssc.data import StrainStressCurve, RealApparentSSC
+from ssc.data import StrainStressCurve, RealApparentSSC, SSCStat, RealApparentSSCStat
 from torch import tensor
 import numpy as np
 
@@ -204,53 +204,66 @@ class NormalizeSSC(BaseProcessor):
     """
         Compute the Min-Max Normalization of a Strain-Stress curve.
     """
-    def __init__(self,
-                 min_strain : float,
-                 max_strain : float,
-                 min_stress : float,
-                 max_stress : float,
-                 min_app_strain : float = None,
-                 max_app_strain : float = None) -> None:
+    def __init__(self, stats: SSCStat = None, use_apparent_values: bool = True) -> None:
         """
             Arguments:
             ----------
 
-            min_strain : float
-                Minimum Strain value.
+            stats : SSCStat
+                Statistics of a Strain-Stress cuve dataset where minimum and maximum values are taken from.
 
-            max_strain : float
-                Maximum Strain value.
-                
-            min_stress : float
-                Minimum Stress value.
-                
-            max_stress : float
-                Maximum Stress value.
+                If `stat == None` each curve is normalized on its own min and max value.
 
-            min_app_strain : float
-                Minimum Apparent Strain value
-
-            max_app_strain : float
-                Maximum Apparent Strain value.
+            use_apparent_values : bool
+                If `True`, the apparent curve is normalized with minimum and maximum 
+                apparent strain values, otherwise real values are used.
         """
-        self.min_strain = min_strain
-        self.max_strain = max_strain
-        self.min_stress = min_stress
-        self.max_stress = max_stress
-        self.min_app_strain = min_app_strain
-        self.max_app_strain = max_app_strain
+        self.stats = stats
+        self.use_apparent_values = use_apparent_values
+        if self.stats != None:
+            if isinstance(self.stats, SSCStat):
+                self.min_strain = self.stats.min_strain()
+                self.max_strain = self.stats.max_strain()
+                self.min_stress = self.stats.min_stress()
+                self.max_stress = self.stats.max_stress()
+            if isinstance(self.stats, RealApparentSSCStat) and self.use_apparent_values:
+                self.min_app_strain = self.stats.min_apparent_strain()
+                self.max_app_strain = self.stats.max_apparent_strain()
+            else:
+                self.min_app_strain = self.min_strain
+                self.max_app_strain = self.max_strain
 
     def process(self, object, index: int = None, batch_size : int = None):
         if not isinstance(object, StrainStressCurve):
             raise TypeError("Invalid type: input must be a StrainStressCurve object.")
         strain = object.strain()
         stress = object.stress()
-        strain = (strain - self.min_strain) / (self.max_strain - self.min_strain)
-        stress = (stress - self.min_stress) / (self.max_stress - self.min_stress)
+        if self.stats == None:
+            min_strain = strain.min()
+            max_strain = strain.max()
+            min_stress = stress.min()
+            max_stress = stress.max()
+        else:
+            min_strain = self.min_strain
+            max_strain = self.max_strain
+            min_stress = self.min_stress
+            max_stress = self.max_stress
+        strain = (strain - min_strain) / (max_strain - min_strain)
+        stress = (stress - min_stress) / (max_stress - min_stress)
         norm_curve = DataFrame(data = zip(strain, stress), columns = [object.strain_label, object.stress_label])
         if isinstance(object, RealApparentSSC):
             apparent_strain = object.apparent_strain()
-            apparent_strain = (apparent_strain - self.min_app_strain) / (self.max_app_strain - self.min_app_strain)
+            if self.stats == None:
+                if self.use_apparent_values:
+                    min_app_strain = apparent_strain.min()
+                    max_app_strain = apparent_strain.max()
+                else:
+                    min_app_strain = min_strain
+                    max_app_strain = max_strain
+            else:
+                min_app_strain = self.min_app_strain
+                max_app_strain = self.max_app_strain
+            apparent_strain = (apparent_strain - min_app_strain) / (max_app_strain - min_app_strain)
             norm_curve.loc[:, object.apparent_strain_label] = apparent_strain
             return RealApparentSSC(curve=norm_curve, like=object, id=object.id)
         return StrainStressCurve(curve=norm_curve, like=object, id=object.id)
@@ -297,6 +310,7 @@ class ProcessingPipeline():
         self.processors = processors
 
     def __call__(self, x):
+        # TODO: gestire i dataset come input
         for processor in self.processors:
             x = processor(x)
         return x

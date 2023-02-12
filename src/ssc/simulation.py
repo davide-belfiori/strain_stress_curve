@@ -6,7 +6,7 @@
 # --- IMPORT ---
 # --------------
 
-from ssc.data import RealApparentSSC, StrainStressDataset, RealApparentSSCDataset
+from ssc.data import RealApparentSSC, StrainStressDataset, RealApparentSSCDataset, RealApparentSSCStat
 from ssc.processing import *
 import random
 import numpy as np
@@ -195,23 +195,29 @@ class NormalizeSimulation(NormalizeSSC):
     """
         Compute the Min-Max Normalization of a Real-Apparent Simulation.
     """
-    def __init__(self, 
-                 min_strain: float, 
-                 max_strain: float, 
-                 min_stress: float, 
-                 max_stress: float, 
-                 min_app_strain: float = None, 
-                 max_app_strain: float = None) -> None:
-        super().__init__(min_strain, max_strain, min_stress, max_stress, min_app_strain, max_app_strain)
+    def __init__(self, stats: RealApparentSSCStat = None, use_apparent_values: bool = True) -> None:
+        """
+            Arguments:
+            ----------
+
+            stats : RealApparentSSCStat
+                Statistics of a Real-Apparent Strain-Stress cuve dataset where minimum and maximum values are taken from.
+
+                If `stat == None` each curve is normalized on its own min and max value.
+
+            use_apparent_values : bool
+                If `True`, the apparent curve is normalized with minimum and maximum 
+                apparent strain values, otherwise real values are used.
+        """
+        super().__init__(stats=stats, use_apparent_values=use_apparent_values)
 
     def process(self, object, index: int = None, batch_size : int = None):
         if not isinstance(object, ApparentSSCSimulation):
             raise TypeError("Invalid type: input must be a ApparentSSCSimulation object.")
-        norm_real = super().process(object=object.real_ssc(), index=index, batch_size=batch_size)
-        norm_apparent_strain = (object.apparent_strain() - self.min_app_strain) / (self.max_app_strain - self.min_app_strain)
+        norm = super().process(object=object, index=index, batch_size=batch_size)
             
-        return ApparentSSCSimulation(real = norm_real, 
-                                     apparent_strain = norm_apparent_strain, 
+        return ApparentSSCSimulation(real = norm.real_ssc(), 
+                                     apparent_strain = norm.apparent_strain(), 
                                      r = object.r,
                                      alpha = object.alpha,
                                      apparent_label = object.apparent_strain_label,

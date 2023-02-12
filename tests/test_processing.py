@@ -18,10 +18,7 @@ def test_RandomCut() -> None:
 def test_NormalizeSSC() -> None:
     dataset = load_dataset(root="test_data/test_dataset")
     stat = SSCStat(dataset)
-    normalizer = NormalizeSSC(min_strain=stat.min_strain(),
-                              max_strain=stat.max_strain(),
-                              min_stress=stat.min_stress(),
-                              max_stress=stat.max_stress())
+    normalizer = NormalizeSSC(stats=stat)
     normalized = normalizer(input=dataset.data.to_list())
 
     assert len(normalized) == dataset.size
@@ -52,10 +49,7 @@ def test_ProcessingPipeline() -> None:
     pipeline = ProcessingPipeline([
         CutNegativeStrain(),
         RandomCut(p=0.5),
-        NormalizeSSC(min_strain=stat.min_strain(),
-                     max_strain=stat.max_strain(),
-                     min_stress=stat.min_stress(),
-                     max_stress=stat.max_stress())
+        NormalizeSSC(stats=stat)
     ])
     ssc = dataset.__getitem__([0,1])
     tensor = pipeline(ssc)
