@@ -61,6 +61,36 @@ class LambdaProcessor(BaseProcessor):
     def process(self, object, index: int = None, batch_size : int = None):
         return self._lambda(object, index, batch_size)
 
+class ShiftToPositive(BaseProcessor):
+    """
+        Shift Strain values to make them all positive.
+    """
+    def __init__(self, inplace: bool = False) -> None:
+        super(ShiftToPositive).__init__()
+        self.inplace = inplace
+
+    def process(self, object, index: int = None, batch_size: int = None):
+        if not isinstance(object, StrainStressCurve):
+            raise TypeError("Invalid type: input must be a StrainStressCurve object.")
+        min_strain = object.min_strain(strain_only=True)
+        if min_strain < 0:
+            if self.inplace:
+                curve = object.curve
+            else:
+                curve = object.curve.copy()
+            curve[object.strain_label] += abs(min_strain)
+            if isinstance(object, RealApparentSSC):
+                curve[object.apparent_strain_label] += min_strain
+            if self.inplace:
+                return object
+            if isinstance(object, RealApparentSSC):
+                return RealApparentSSC(curve=curve, like=object, id=object.id)
+            return StrainStressCurve(curve=curve, like=object, id=object.id)
+        if self.inplace:
+            return object
+        return object.copy()
+            
+
 class CutNegativeStrain(BaseProcessor):
     """
         Cut all curve points before the last negative Strain value.

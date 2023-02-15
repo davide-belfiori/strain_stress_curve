@@ -2,6 +2,14 @@ from ssc.data import read_curve, load_dataset, SSCStat
 from ssc.processing import *
 from ssc.simulation import simulate_real_apparent_dataset
 
+def test_ShiftToPositive() -> None:
+    ssc = read_curve(data_path = "test_data/ssc_data_header.csv")
+    ssc_pos = ShiftToPositive(inplace=False)(ssc)
+    assert ssc_pos.strain().lt(0).sum() == 0
+
+    ssc_pos = ShiftToPositive(inplace=True)(ssc)
+    assert ssc.strain().lt(0).sum() == 0
+
 def test_CutNegativeStrain() -> None:
     ssc = read_curve(data_path = "test_data/ssc_data_header.csv")
     ssc_cut = CutNegativeStrain()(input=ssc)
