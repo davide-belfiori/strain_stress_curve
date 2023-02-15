@@ -68,7 +68,7 @@ class StrainStressCurve():
         """
         return StrainStressCurve(curve=self.curve.copy(),
                                  strain_label=self.strain_label,
-                                 stress_label=self.strain_label)
+                                 stress_label=self.stress_label)
 
     def info(self):
         """
