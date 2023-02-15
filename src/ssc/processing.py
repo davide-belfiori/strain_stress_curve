@@ -61,6 +61,24 @@ class LambdaProcessor(BaseProcessor):
     def process(self, object, index: int = None, batch_size : int = None):
         return self._lambda(object, index, batch_size)
 
+class DropNan(BaseProcessor):
+    """
+        Drop points containing Nan values
+    """
+    def __init__(self, inplace: bool = False) -> None:
+        super().__init__()
+        self.inplace = inplace
+
+    def process(self, object, index: int = None, batch_size: int = None):
+        if not isinstance(object, StrainStressCurve):
+            raise TypeError("Invalid type: input must be a StrainStressCurve object.")
+        if not self.inplace:
+            object = object.copy()
+        object.curve.dropna(inplace=True)
+        object.curve.reset_index(drop=True, inplace=True)
+        return object
+            
+
 class ShiftToPositive(BaseProcessor):
     """
         Shift Strain values to make them all positive.
