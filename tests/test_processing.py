@@ -6,8 +6,10 @@ def test_ShiftToPositive() -> None:
     ssc = read_curve(data_path = "test_data/ssc_data_header.csv")
     ssc_pos = ShiftToPositive(inplace=False)(ssc)
     assert ssc_pos.strain().lt(0).sum() == 0
+    assert ssc.strain().lt(0).sum() > 0
 
     ssc_pos = ShiftToPositive(inplace=True)(ssc)
+    assert ssc_pos.strain().lt(0).sum() == 0
     assert ssc.strain().lt(0).sum() == 0
 
 def test_CutNegativeStrain() -> None:
