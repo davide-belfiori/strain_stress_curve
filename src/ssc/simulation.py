@@ -254,7 +254,8 @@ def simulate_real_apparent_dataset(dataset: StrainStressDataset,
         Simulate a Real-Apparent Dataset from a `StrainStressDataset`.
     """
     pipeline = ProcessingPipeline([
-        CutNegativeStrain(),
+        DropNan(),
+        ShiftToPositive(),
         SimulateApparent(r = r, 
                          alpha = alpha, 
                          r_policy = r_policy, 
