@@ -73,7 +73,8 @@ class ApparentSSCSimulation(RealApparentSSC):
                                      apparent_strain = self.apparent_strain().copy(),
                                      r = self.r,
                                      alpha = self.alpha,
-                                     apparent_label = self.apparent_strain_label)
+                                     apparent_label = self.apparent_strain_label,
+                                     id = self.id)
 
     def info(self):
         i = super().info()

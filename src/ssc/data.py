@@ -68,7 +68,8 @@ class StrainStressCurve():
         """
         return StrainStressCurve(curve=self.curve.copy(),
                                  strain_label=self.strain_label,
-                                 stress_label=self.stress_label)
+                                 stress_label=self.stress_label,
+                                 id=self.id)
 
     def info(self):
         """
@@ -279,7 +280,8 @@ class RealApparentSSC(StrainStressCurve):
         return RealApparentSSC(data = self.curve.copy(),
                                 strain_label = self.strain_label,
                                 stress_label = self.stress_label,
-                                apparent_strain_label = self.apparent_strain_label)
+                                apparent_strain_label = self.apparent_strain_label,
+                                id=self.id)
 
     def info(self):
         i = super().info()
